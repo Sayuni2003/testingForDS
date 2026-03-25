@@ -31,8 +31,10 @@ const PORT = process.env.PORT || 3000;
 
 // ─── MIDDLEWARE ────────────────────────────────────────────────────────────────
 
-// Parse incoming JSON request bodies
-app.use(express.json());
+// NOTE: We intentionally do NOT use express.json() here.
+// If the gateway parses the JSON body, it consumes the request stream.
+// The proxy then has nothing left to forward to the upstream service → requests hang.
+// Body parsing happens inside each individual service, not the gateway.
 
 // Allow requests from the React frontend (running on a different port)
 // Without this, browsers block cross-origin requests (CORS policy)

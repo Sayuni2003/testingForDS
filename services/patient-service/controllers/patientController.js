@@ -6,7 +6,7 @@
  *   Handles input parsing and response formatting only.
  */
 
-const { getAllPatients, createPatient } = require('../services/patientService');
+const { getAllPatients, getPatientById, createPatient } = require('../services/patientService');
 
 /**
  * getPatients — GET /patients
@@ -35,4 +35,25 @@ const addPatient = async (req, res) => {
   }
 };
 
-module.exports = { getPatients, addPatient };
+/**
+ * findPatientById — GET /patients/:id
+ *
+ * Called internally by appointment-service to verify a patient exists.
+ * Also exposed through the gateway so the frontend can look up individual patients.
+ *
+ * Returns: 200 + patient  |  404 if not found  |  500 on error
+ */
+const findPatientById = async (req, res) => {
+  try {
+    const patient = await getPatientById(req.params.id);
+    if (!patient) {
+      return res.status(404).json({ message: 'Patient not found.' });
+    }
+    res.status(200).json(patient);
+  } catch (err) {
+    // Mongoose throws a CastError if the id format is invalid
+    res.status(400).json({ message: 'Invalid patient ID format.' });
+  }
+};
+
+module.exports = { getPatients, findPatientById, addPatient };

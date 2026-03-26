@@ -6,8 +6,15 @@
  *   The controller layer calls these functions and handles HTTP responses.
  *
  * FUNCTIONS:
- *   getAllPatients()     — fetch all patients from patient-db
- *   createPatient(data) — validate and save a new patient
+ *   getAllPatients()       — fetch all patients from patient-db
+ *   getPatientById(id)    — fetch a single patient by MongoDB _id
+ *   createPatient(data)   — validate and save a new patient
+ *
+ * NOTE on getPatientById:
+ *   This is used by appointment-service via an internal HTTP call to verify
+ *   that a patient exists before an appointment is created.
+ *   This is synchronous inter-service communication — appointment-service
+ *   calls patient-service directly (not through the gateway) on its internal port.
  */
 
 const Patient = require('../models/Patient');
@@ -39,4 +46,16 @@ const createPatient = async (data) => {
   return patient;
 };
 
-module.exports = { getAllPatients, createPatient };
+/**
+ * getPatientById
+ * Finds a single patient by their MongoDB _id.
+ * Returns null if not found — the caller decides what to do with that.
+ *
+ * @param {string} id - MongoDB _id string
+ */
+const getPatientById = async (id) => {
+  const patient = await Patient.findById(id);
+  return patient; // null if not found
+};
+
+module.exports = { getAllPatients, getPatientById, createPatient };

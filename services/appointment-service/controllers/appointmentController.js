@@ -22,15 +22,22 @@ const getAppointments = async (req, res) => {
 
 /**
  * addAppointment — POST /appointments
- * Expects: { patientId, date }
- * Returns: 201 + the created appointment document
+ *
+ * Returns:
+ *   201 — appointment created
+ *   400 — missing fields
+ *   404 — patient ID not found in patient-service
+ *   503 — patient-service is down (cannot validate)
  */
 const addAppointment = async (req, res) => {
   try {
     const appointment = await createAppointment(req.body);
     res.status(201).json(appointment);
   } catch (err) {
-    res.status(400).json({ message: err.message });
+    // The service throws { status, message } objects for known errors.
+    // Fall back to 500 for unexpected errors.
+    const statusCode = err.status || 500;
+    res.status(statusCode).json({ message: err.message || 'Internal server error.' });
   }
 };
 
